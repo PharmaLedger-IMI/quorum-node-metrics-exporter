@@ -22,12 +22,7 @@ A Docker image based on a [Python script](./source/main.py) to gather additional
 
 You can import the Grafana Dashboard from [here](./docs/grafana_dashboard_peers_overview.json)
 
-Metrics are provided for current peers connected peers and for well known peers defined in the configuration.
-
-See below:
-
-- Between approx. 11:27 and 11:30 peer `5cc...` was not connected with our node.
-- Between approx. 11:30 and 11:32 our node was not connected to any peer. Starting from 11:32 some peers connected to our node via an inbound connection.
+Metrics are provided for current connected peers and for well known peers defined in the configuration.
 
 ![Grafana Dashboard](./docs/grafana_dashboard_peers_overview.png)
 
