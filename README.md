@@ -1,6 +1,6 @@
 # Quorum Node Metrics Exporter
 
-A Docker image based on a [Python script](main.py) to gather additional information about peers of a Quorum Node via the RPC endpoint and to provide metrics in Prometheus format.
+A Docker image based on a [Python script](./source/main.py) to gather additional information about peers of a Quorum Node via the RPC endpoint and to provide metrics in Prometheus format.
 
 ## Howto
 
@@ -22,7 +22,7 @@ A Docker image based on a [Python script](main.py) to gather additional informat
 
 You can import the Grafana Dashboard from [here](./docs/grafana_dashboard_peers_overview.json)
 
-Metrics are only provided for current peers. If a peer is not connected, then there is no data for that peer.
+Metrics are provided for current peers connected peers and for well known peers defined in the configuration.
 
 See below:
 

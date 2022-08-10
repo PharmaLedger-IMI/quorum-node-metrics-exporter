@@ -25,7 +25,7 @@
     "fiscalYearStartMonth": 0,
     "graphTooltip": 0,
     "id": 14,
-    "iteration": 1657877708728,
+    "iteration": 1660139658477,
     "links": [],
     "liveNow": false,
     "panels": [
@@ -67,8 +67,12 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "blue",
+                  "color": "#00000000",
                   "value": null
+                },
+                {
+                  "color": "blue",
+                  "value": 1
                 },
                 {
                   "color": "yellow",
@@ -109,10 +113,10 @@
             },
             "editorMode": "code",
             "exemplar": false,
-            "expr": "min by(enode_short) (quorum_peers_network_direction{instance=~\"$instance\",instance_name=~\"$instance_name\"})",
+            "expr": "min by(name) (quorum_peers_network_direction{instance=~\"$instance\",instance_name=~\"$instance_name\"})",
             "format": "time_series",
             "instant": false,
-            "legendFormat": "{{enode_short}}",
+            "legendFormat": "{{name}}",
             "range": true,
             "refId": "A"
           }
@@ -174,37 +178,7 @@
               ]
             }
           },
-          "overrides": [
-            {
-              "__systemRef": "hideSeriesFrom",
-              "matcher": {
-                "id": "byNames",
-                "options": {
-                  "mode": "exclude",
-                  "names": [
-                    "4312d5056db7edf8b6a5",
-                    "456a860cb1275dd23974",
-                    "4801af270f75e9352bc9",
-                    "5cc30b8deb1d082fe8cd",
-                    "a36ceb6ccdf5ff8a7c61",
-                    "b06bca847a8c27e7de20"
-                  ],
-                  "prefix": "All except:",
-                  "readOnly": true
-                }
-              },
-              "properties": [
-                {
-                  "id": "custom.hideFrom",
-                  "value": {
-                    "legend": false,
-                    "tooltip": false,
-                    "viz": true
-                  }
-                }
-              ]
-            }
-          ]
+          "overrides": []
         },
         "gridPos": {
           "h": 12,
@@ -233,9 +207,10 @@
             },
             "editorMode": "code",
             "exemplar": false,
-            "expr": "min by(enode_short) (quorum_peers_head_block{instance=~\"$instance\",instance_name=~\"$instance_name\"})",
+            "expr": "min by(name) (quorum_peers_head_block{instance=~\"$instance\",instance_name=~\"$instance_name\"})",
+            "format": "time_series",
             "instant": false,
-            "legendFormat": "{{enode_short}}",
+            "legendFormat": "{{name}}",
             "range": true,
             "refId": "A"
           }
@@ -308,13 +283,13 @@
       ]
     },
     "time": {
-      "from": "now-15m",
+      "from": "now-30m",
       "to": "now"
     },
     "timepicker": {},
     "timezone": "",
     "title": "Quorum Peers Overview",
     "uid": "74Gelq67k",
-    "version": 23,
+    "version": 25,
     "weekStart": ""
-  }
+}
