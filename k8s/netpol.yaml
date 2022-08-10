@@ -1,0 +1,66 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ingress-from-prometheus
+  namespace: epi-poc-quorum-metrics
+spec:
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: prometheus
+      podSelector:
+        matchLabels:
+          app: prometheus
+    ports:
+    - port: 8000
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: quorum-node-metrics-exporter
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: egress-to-quorum
+  namespace: epi-poc-quorum-metrics
+spec:
+  egress:
+  - ports:
+    - port: 8545
+      protocol: TCP
+    to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: epi-poc-quorum
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: quorum-node-0
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: quorum-node-metrics-exporter
+  policyTypes:
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: egress-to-dns
+  namespace: epi-poc-quorum-metrics
+spec:
+  egress:
+  - ports:
+    - port: 53
+      protocol: UDP
+    to:
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: quorum-node-metrics-exporter
+  policyTypes:
+  - Egress
