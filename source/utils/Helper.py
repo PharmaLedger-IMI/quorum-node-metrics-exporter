@@ -2,6 +2,7 @@ import logging
 import urllib.parse
 import re
 import socket
+from functools import reduce
 
 # The regex pattern to extract the 128 hex chars enode from enode url
 enode_pattern = re.compile(r'[0-9a-fA-F]{128}')
@@ -58,3 +59,16 @@ class Helper:
             if len(enodeList) > 0:
                 return enodeList[0]
         return None
+
+    def deep_get(self, dictionary, keys, default=None):
+        """See https://stackoverflow.com/questions/25833613/safe-method-to-get-value-of-nested-dictionary
+
+        Args:
+            dictionary (_type_): _description_
+            keys (_type_): _description_
+            default (_type_, optional): _description_. Defaults to None.
+
+        Returns:
+            _type_: _description_
+        """
+        return reduce(lambda d, key: d.get(key, default) if isinstance(d, dict) else default, keys.split("."), dictionary)
