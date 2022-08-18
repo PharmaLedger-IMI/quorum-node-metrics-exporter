@@ -68,11 +68,13 @@ class MetricsProvider:
 
                 # If instance is not provided, we determine it from network.localAddress
                 if instance is None:
-                    instance = self.helper.getHostName(each_peer.get('network', {}).get('localAddress'))
-                    if instance:
-                        instance = instance + ':9545' # add same port as Quorum Node default metrics also do
-                    else:
-                        instance = ''
+                    localAddress = self.helper.deep_get(each_peer, 'network.localAddress')
+                    if localAddress:
+                        instance = self.helper.getHostName(localAddress)
+                        if instance:
+                            instance = instance + ':9545' # add same port as Quorum Node default metrics also do
+                        else:
+                            instance = ''
 
                 # Get pretty name. If not defined use enode_short instead
                 name = self.config.peers.get(enode, enode_short)
@@ -83,18 +85,18 @@ class MetricsProvider:
 
                 # 2. metric_peers_network_direction
                 # Set network inbound (1) or outbound (2)
-                inbound = each_peer.get('network', {}).get('inbound')
+                inbound = self.helper.deep_get(each_peer, 'network.inbound')
                 if inbound == True:
                     metric_peers_network_direction.add_metric([instance, instance_name, enode, enode_short, name], 1)
                 elif inbound == False:
                     metric_peers_network_direction.add_metric([instance, instance_name, enode, enode_short, name], 2)
 
                 # 3. metric_peers_head_block
-                eth_difficulty = each_peer.get('protocols', {}).get('eth', {}).get("difficulty")
+                eth_difficulty = self.helper.deep_get(each_peer, 'protocols.eth.difficulty')
                 if eth_difficulty:
                     metric_peers_head_block.add_metric([instance, instance_name, enode, enode_short, name, 'eth'], eth_difficulty)
 
-                istanbul_difficulty = each_peer.get('protocols', {}).get('istanbul', {}).get("difficulty")
+                istanbul_difficulty = self.helper.deep_get(each_peer, 'protocols.istanbul.difficulty')
                 if istanbul_difficulty:
                     metric_peers_head_block.add_metric([instance, instance_name, enode, enode_short, name, 'istanbul'], istanbul_difficulty)
 
