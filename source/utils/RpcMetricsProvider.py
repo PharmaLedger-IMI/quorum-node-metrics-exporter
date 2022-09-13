@@ -2,11 +2,12 @@ import logging
 import requests
 from .Config import Config
 from .Helper import Helper
+from .IMetricsProvider import IMetricsProvider
 from prometheus_client.core import GaugeMetricFamily
 from requests.structures import CaseInsensitiveDict
 
-class MetricsProvider:
-    """Collects data and provides metrics data.
+class RpcMetricsProvider(IMetricsProvider):
+    """Collects data from Quorum RPC API and provides metrics data.
     """
     def __init__(self, config:Config):
 
@@ -16,6 +17,9 @@ class MetricsProvider:
         self.current_metrics = []
         self.config = config
         self.helper = Helper()
+
+    def getCurrentMetrics(self) -> list:
+        return self.current_metrics
 
     def getPeersData(self):
         """Get data of the current peers by querying Quorum nodes RPC endpoint
@@ -46,7 +50,7 @@ class MetricsProvider:
         if peersData is None:
             peersData = []
 
-        logging.info("Creating metrics for %s peers - instance=%s, instance_name=%s", len(peersData), ('[None=will be determined from localAddress]' if instance is None else instance), instance_name)
+        logging.info("%s >> Creating metrics for %s peers - instance=%s, instance_name=%s", type(self).__name__, len(peersData), ('[None=will be determined from localAddress]' if instance is None else instance), instance_name)
 
         # Prepare current metrics
         metric_peers = GaugeMetricFamily('quorum_peers', 'Quorum peers by enode', labels=['instance', 'instance_name', 'enode', 'enode_short', 'name'])
@@ -77,7 +81,7 @@ class MetricsProvider:
                             instance = ''
 
                 # Get pretty name. If not defined use enode_short instead
-                name = self.config.peers.get(enode, enode_short)
+                name = enode_short if enode not in self.config.peers else self.config.peers[enode].name
 
                 # 1. metric_peers
                 # Set value (1) that enode is found
@@ -105,7 +109,8 @@ class MetricsProvider:
             if not enodes_found.get(each_config_peer_enode, False):
                 enode = each_config_peer_enode
                 enode_short = enode[0:20]
-                name = self.config.peers.get(enode, enode_short)
+                # name = self.config.peers.get(enode, enode_short)
+                name = enode_short if enode not in self.config.peers else self.config.peers[enode].name
 
                 # 1. metric_peers
                 # Set value (0) that enode is NOT found
