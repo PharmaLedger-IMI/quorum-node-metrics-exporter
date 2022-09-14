@@ -1,3 +1,5 @@
+"""Provides Metrics collected via the Quorum RPC endpoint
+"""
 import logging
 import requests
 
@@ -13,10 +15,6 @@ class RpcMetricsProvider(IMetricsProvider):
     """
 
     def __init__(self, config: Config):
-
-        # The current metrics to be reported on a Prometheus scrape.
-        # Note: We cannot use "default" Gauge as the values remain even if the peer does not exists anymore.
-        # Therefore we set fresh metrics every time we collect peers information.
         self._current_metrics = []
         self._config = config
         self._helper = Helper()
@@ -61,7 +59,9 @@ class RpcMetricsProvider(IMetricsProvider):
         logging.info("%s >> Creating metrics for %s peers - instance_name=%s, rpc_url=%s",
                      type(self).__name__, len(peers_data), instance_name, self._config.rpc_url)
 
-        # Prepare current metrics
+        # The current metrics to be reported on a Prometheus scrape.
+        # We cannot use "default" Gauge as the values remain even if the peer does not exist anymore
+        # Therefore we set fresh metrics every time we collect peers information.
         metric_peers = GaugeMetricFamily(
             'quorum_peers', 'Quorum peers by enode',
             labels=['instance', 'instance_name',
@@ -76,87 +76,96 @@ class RpcMetricsProvider(IMetricsProvider):
                     'enode_short', 'name', 'protocol'])
 
         # A dict of all enodes currently connected as peers
-        enodes_found = {}
+        enodes_connected = {}
 
+        # Add metrics for all connected peers
         for each_peer in peers_data:
-            # enodeUrl = "enode://[HERE IS THE 128 HEX-CHARS LONG ENODE]@1.2.3.4:30303?discport=0"
-            enode = self._helper.get_enode(enode_url=each_peer.get('enode'))
+            enode = self._set_metrics_for_connected_peer(each_peer, instance_name, metric_peers, metric_peers_network_direction, metric_peers_head_block)
+            if enode is not None:
+                enodes_connected[enode] = True
 
-            # https://github.com/prometheus/client_python
-            if enode:
-                enode_short = enode[0:20]
-                # Remember that enode was found
-                enodes_found[enode] = True
-
-                # If instance is not provided, we determine it from network.localAddress
-                instance = ''
-                local_address = self._helper.deep_get(
-                    each_peer, 'network.localAddress')
-                if local_address:
-                    instance = self._helper.get_host_name(local_address)
-                    if instance:
-                        instance = instance + ':9545'  # add same port as Quorum Node default metrics also do
-
-                # Get pretty name. If not defined use enode_short instead
-                name = enode_short if enode not in self._config.peers else self._config.peers[
-                    enode].name
-
-                # 1. metric_peers
-                # Set value (1) that enode is found
-                metric_peers.add_metric(
-                    [instance, instance_name, enode, enode_short, name], 1)
-
-                # 2. metric_peers_network_direction
-                # Set network inbound (1) or outbound (2)
-                inbound = self._helper.deep_get(each_peer, 'network.inbound')
-                metric_peers_network_direction.add_metric(
-                    [instance, instance_name, enode, enode_short, name],
-                    1 if inbound is True else 2)
-
-                # 3. metric_peers_head_block
-                eth_difficulty = self._helper.deep_get(
-                    each_peer, 'protocols.eth.difficulty')
-                if eth_difficulty:
-                    metric_peers_head_block.add_metric(
-                        [instance, instance_name, enode, enode_short, name, 'eth'],
-                        eth_difficulty)
-
-                istanbul_difficulty = self._helper.deep_get(
-                    each_peer, 'protocols.istanbul.difficulty')
-                if istanbul_difficulty:
-                    metric_peers_head_block.add_metric(
-                        [instance, instance_name, enode,
-                            enode_short, name, 'istanbul'],
-                        istanbul_difficulty)
-
-        # Add metrics for all expected peers that are currenty NOT connected
+        # Add metrics for all configured/expected peers that are currenty NOT connected
         for each_config_peer_enode in self._config.peers.keys():
-            if not enodes_found.get(each_config_peer_enode, False):
-                enode = each_config_peer_enode
-                enode_short = enode[0:20]
-                # name = self.config.peers.get(enode, enode_short)
-                name = enode_short if enode not in self._config.peers else self._config.peers[
-                    enode].name
-
-                # 1. metric_peers
-                # Set value (0) that enode is NOT found
-                metric_peers.add_metric(
-                    [instance, instance_name, enode, enode_short, name], 0)
-
-                # 2. metric_peers_network_direction
-                # Set network not connected (0)
-                metric_peers_network_direction.add_metric(
-                    [instance, instance_name, enode, enode_short, name], 0)
-
-                # 3. metric_peers_head_block
-                # WE DO NOT ADD THESE METRICS AS THEY DO NOT MAKE SENSE:
-                # Providing a value of zero (0) may also be a correct value, therefore we do not create head block metrics for non connected peers!
-                # metric_peers_head_block.add_metric([instance, instance_name, enode, enode_short, name, 'eth'], 0)
-                # metric_peers_head_block.add_metric([instance, instance_name, enode, enode_short, name, 'istanbul'], 0)
+            if each_config_peer_enode not in enodes_connected:
+#            enodes_connected.get(each_config_peer_enode, False) is False:
+                self._set_metrics_for_expected_but_unconnected_peer(each_config_peer_enode, instance_name, metric_peers, metric_peers_network_direction)
 
         # Set current metrics to be reported by CustomCollector in a single atomic operation
         self._current_metrics = [
             metric_peers, metric_peers_network_direction, metric_peers_head_block]
+
+    def _set_metrics_for_connected_peer(self, each_peer, instance_name, metric_peers, metric_peers_network_direction, metric_peers_head_block) -> str:
+        # enodeUrl = "enode://[HERE IS THE 128 HEX-CHARS LONG ENODE]@1.2.3.4:30303?discport=0"
+        enode = self._helper.get_enode(enode_url=each_peer.get('enode'))
+
+        if enode is None:
+            return None
+
+        enode_short = enode[0:20]
+
+        # If instance is not provided, we determine it from network.localAddress
+        instance = ''
+        local_address = self._helper.deep_get(
+            each_peer, 'network.localAddress')
+        if local_address:
+            instance = self._helper.get_host_name(local_address)
+            if instance:
+                instance = instance + ':9545'  # add same port as Quorum Node default metrics also do
+
+        # Get pretty name. If not defined use enode_short instead
+        name = enode_short if enode not in self._config.peers else self._config.peers[
+            enode].name
+
+        # 1. metric_peers
+        # Set value (1) that enode is found
+        metric_peers.add_metric(
+            [instance, instance_name, enode, enode_short, name], 1)
+
+        # 2. metric_peers_network_direction
+        # Set network inbound (1) or outbound (2)
+        inbound = self._helper.deep_get(each_peer, 'network.inbound')
+        metric_peers_network_direction.add_metric(
+            [instance, instance_name, enode, enode_short, name],
+            1 if inbound is True else 2)
+
+        # 3. metric_peers_head_block
+        eth_difficulty = self._helper.deep_get(
+            each_peer, 'protocols.eth.difficulty')
+        if eth_difficulty:
+            metric_peers_head_block.add_metric(
+                [instance, instance_name, enode, enode_short, name, 'eth'],
+                eth_difficulty)
+
+        istanbul_difficulty = self._helper.deep_get(
+            each_peer, 'protocols.istanbul.difficulty')
+        if istanbul_difficulty:
+            metric_peers_head_block.add_metric(
+                [instance, instance_name, enode,
+                    enode_short, name, 'istanbul'],
+                istanbul_difficulty)
+
+        return enode
+
+    def _set_metrics_for_expected_but_unconnected_peer(self, enode, instance_name, metric_peers, metric_peers_network_direction) -> str:
+        instance = ''
+        enode_short = enode[0:20]
+        name = self._config.peers[enode].name
+
+        # 1. metric_peers
+        # Set value (0) that enode is NOT found
+        metric_peers.add_metric(
+            [instance, instance_name, enode, enode_short, name], 0)
+
+        # 2. metric_peers_network_direction
+        # Set network not connected (0)
+        metric_peers_network_direction.add_metric(
+            [instance, instance_name, enode, enode_short, name], 0)
+
+        # 3. metric_peers_head_block
+        # WE DO NOT ADD THESE METRICS AS THEY DO NOT MAKE SENSE:
+        # Providing a value of zero (0) may also be a correct value, therefore we do not create head block metrics for non connected peers!
+        # metric_peers_head_block.add_metric([instance, instance_name, enode, enode_short, name, 'eth'], 0)
+        # metric_peers_head_block.add_metric([instance, instance_name, enode, enode_short, name, 'istanbul'], 0)
 
     def process(self):
         """Processes getting peers info and preparing metrics

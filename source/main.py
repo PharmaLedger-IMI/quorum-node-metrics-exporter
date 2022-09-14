@@ -11,7 +11,12 @@ from utils.common import CustomCollector
 from utils.kube_exec_metrics_provider import KubeExecMetricsProvider
 from utils.rpc_metrics_provider import RpcMetricsProvider
 
-if __name__ == '__main__':
+def main() -> int:
+    """Main
+
+    Returns:
+        int: Return code
+    """
     logging.basicConfig(
         format='%(levelname)s: %(message)s', level=logging.INFO)
 
@@ -19,7 +24,7 @@ if __name__ == '__main__':
     SLEEP_TIME = 10.0
     config = utils.config.load()
     if config is None:
-        sys.exit(1)
+        return 1
 
     # Init MetricsProviders and register CustomCollectors
     rpc_metrics_provider = RpcMetricsProvider(config)
@@ -46,3 +51,7 @@ if __name__ == '__main__':
         quit_event.wait(timeout=SLEEP_TIME)
 
     logging.info("Leaving - quit_event.is_set()=%s", quit_event.is_set())
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main())
