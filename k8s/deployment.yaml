@@ -26,7 +26,8 @@ spec:
         app.kubernetes.io/name: quorum-node-metrics-exporter
         app.kubernetes.io/instance: quorum-node-metrics-exporter
     spec:
-      automountServiceAccountToken: false
+      automountServiceAccountToken: true
+      serviceAccountName: quorum-node-metrics-exporter
       containers:
         - image: REGISTRY/REPO:TAG
           imagePullPolicy: Always
