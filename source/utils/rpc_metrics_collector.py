@@ -1,17 +1,18 @@
-"""Provides Metrics collected via the Quorum RPC endpoint
+"""Prometheus metrics collector provided by querying the Quorum RPC endpoint
 """
 import logging
-import requests
+from typing import Iterable
 
-from prometheus_client.core import GaugeMetricFamily
+import requests
+from prometheus_client.core import GaugeMetricFamily, Metric
+from prometheus_client.registry import Collector
 from requests.structures import CaseInsensitiveDict
 
-from .common import IMetricsProvider  # pylint: disable=E0402
 from .config import Config  # pylint: disable=E0402
 from .helper import Helper  # pylint: disable=E0402
 
 
-class RpcMetricsProvider(IMetricsProvider):
+class RpcMetricsCollector(Collector):
     """Collects data from Quorum RPC API and provides metrics data.
     """
 
@@ -20,11 +21,11 @@ class RpcMetricsProvider(IMetricsProvider):
         self._config = config
         self._helper = Helper()
 
-    def get_current_metrics(self) -> list:
-        """Get the current metrics. Implementation of the IMetricsProvider
+    def collect(self) -> Iterable[Metric]:
+        """Get the current metrics. Implementation of the Collector
 
         Returns:
-            list: The current metrics
+            Iterable[Metric]: The current metrics
         """
         return self._current_metrics
 

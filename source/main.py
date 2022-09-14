@@ -1,3 +1,5 @@
+"""Main program
+"""
 import logging
 import signal
 import sys
@@ -7,9 +9,9 @@ from prometheus_client import start_http_server
 from prometheus_client.core import REGISTRY
 
 import utils.config
-from utils.common import CustomCollector
-from utils.kube_exec_metrics_provider import KubeExecMetricsProvider
-from utils.rpc_metrics_provider import RpcMetricsProvider
+from utils.kube_exec_metrics_collector import KubeExecMetricsCollector
+from utils.rpc_metrics_collector import RpcMetricsCollector
+
 
 def main() -> int:
     """Main
@@ -27,13 +29,11 @@ def main() -> int:
         return 1
 
     # Init MetricsProviders and register CustomCollectors
-    rpc_metrics_provider = RpcMetricsProvider(config)
-    rpc_custom_collector = CustomCollector(rpc_metrics_provider)
-    REGISTRY.register(rpc_custom_collector)
+    rpc_metrics_collector = RpcMetricsCollector(config)
+    REGISTRY.register(rpc_metrics_collector)
 
-    kube_exec_metrics_provider = KubeExecMetricsProvider(config)
-    kube_exec_custom_collector = CustomCollector(kube_exec_metrics_provider)
-    REGISTRY.register(kube_exec_custom_collector)
+    kube_exec_metrics_collector = KubeExecMetricsCollector(config)
+    REGISTRY.register(kube_exec_metrics_collector)
 
     # Start up the server to expose the metrics.
     start_http_server(8000)
@@ -45,8 +45,8 @@ def main() -> int:
                   lambda *_args: (logging.info("SIGTERM received") and False) or quit_event.set())
     while not quit_event.is_set():
         logging.info("Preparing metrics")
-        rpc_metrics_provider.process()
-        kube_exec_metrics_provider.process()
+        rpc_metrics_collector.process()
+        kube_exec_metrics_collector.process()
         logging.info("Done. Sleeping for %s seconds", SLEEP_TIME)
         quit_event.wait(timeout=SLEEP_TIME)
 

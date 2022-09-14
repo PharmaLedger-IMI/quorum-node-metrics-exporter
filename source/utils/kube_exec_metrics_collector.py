@@ -1,18 +1,19 @@
-"""Provides Metrics collected via executing command in the Quorum pod via "kubectl exec"
+"""Prometheus metrics collector provided by executing commands in the Quorum pod via "kubectl exec"
 """
 import logging
+from typing import Iterable
 
 import kubernetes
 from kubernetes.client.api import core_v1_api, apps_v1_api
 from kubernetes.stream import stream
-from prometheus_client.core import GaugeMetricFamily
+from prometheus_client.core import GaugeMetricFamily, Metric
+from prometheus_client.registry import Collector
 
-from .common import IMetricsProvider  # pylint: disable=E0402
 from .config import Config, PeerConfig  # pylint: disable=E0402
 from .helper import Helper  # pylint: disable=E0402
 
 
-class KubeExecMetricsProvider(IMetricsProvider):
+class KubeExecMetricsCollector(Collector):
     """Executes commands via "kubectl exec" in remote pod and provides metrics
     """
 
@@ -24,11 +25,11 @@ class KubeExecMetricsProvider(IMetricsProvider):
         self._config = config
         self._helper = Helper()
 
-    def get_current_metrics(self) -> list:
-        """Get the current metrics. Implementation of the IMetricsProvider
+    def collect(self) -> Iterable[Metric]:
+        """Get the current metrics. Implementation of the Collector
 
         Returns:
-            list: The current metrics
+            Iterable[Metric]: The current metrics
         """
         return self._current_metrics
 
