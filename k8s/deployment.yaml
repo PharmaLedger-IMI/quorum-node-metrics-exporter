@@ -4,7 +4,7 @@ metadata:
   labels:
     app.kubernetes.io/name: quorum-node-metrics-exporter
   name: quorum-node-metrics-exporter
-  namespace: epi-poc-quorum-metrics
+  namespace: epi-poc-quorum
 spec:
   replicas: 1
   selector:
@@ -26,7 +26,8 @@ spec:
         app.kubernetes.io/name: quorum-node-metrics-exporter
         app.kubernetes.io/instance: quorum-node-metrics-exporter
     spec:
-      automountServiceAccountToken: false
+      automountServiceAccountToken: true
+      serviceAccountName: quorum-node-metrics-exporter
       containers:
         - image: REGISTRY/REPO:TAG
           imagePullPolicy: Always

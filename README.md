@@ -1,22 +1,27 @@
 # Quorum Node Metrics Exporter
 
-A Docker image based on a [Python script](./source/main.py) to gather additional information about peers of a Quorum Node via the RPC endpoint and to provide metrics in Prometheus format.
+A Docker image based on a [Python script](./source/main.py) to provide additional metrics of a Quorum node in Prometheus format.
+
+- Information about peers
+- Information if the quorum node can establish a TCP connection to another peer (good for finding out firewall misconfigurations).
 
 ## Howto
 
 1. Build the docker image, e.g. `docker build -t REGISTYR/REPO:TAG .`
 2. Push to your registry - `docker push REGISTYR/REPO:TAG`
-3. There is no helm chart yet as of 2022-July-15 !
+3. There is no helm chart yet !
 4. Set the image `.spec.template.spec.containers[0].image` in file [deployment.yaml](./k8s/deployment.yaml).
-5. Set `rpc_url` and `peers` in file [configmap.yaml](./k8s/configmap.yaml).
-6. Deploy to Kubernetes`
+5. Set `namespace`, `deployment`, `rpc_url` and  `peers` in file [configmap.yaml](./k8s/configmap.yaml).
+6. Set the `metadata.namespace` in all Kubernetes yaml files. Must be deployed into the same namespace as Quorum is running!
+7. Deploy to Kubernetes`
 
       ```bash
         kubectl apply -n=my-custom-namespace k8s/configmap.yaml
+        kubectl apply -n=my-custom-namespace k8s/rbac.yaml
         kubectl apply -n=my-custom-namespace k8s/deployment.yaml
       ```
 
-7. In case you are using network policies, take a look at [netpol.yaml](./k8s/netpol.yaml) and modify the policies according to your needs.
+8. In case you are using network policies, take a look at [netpol.yaml](./k8s/netpol.yaml) and modify the policies according to your needs.
 
 ## Grafana Dashboard
 
@@ -40,6 +45,10 @@ Metrics are provided for current connected peers and for well known peers define
   - Description: Quorum peers head block by enode and protocol eth or istanbul
   - Labels: instance, instance_name, enode, enode_short, name, protocol
   - Values: The latest block of the connected peer
+- `quorum_tcp_egress_connectivity`:
+  - Description: Quorum TCP egress connectivity to other nodes by enode.
+  - Labels: instance, instance_name, enode, enode_short, name
+  - Values: 0=no connectivity/an outbound connection cannot be established, 1=connection can be established
 
 ### Metric Labels
 

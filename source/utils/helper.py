@@ -7,10 +7,11 @@ from functools import reduce
 # The regex pattern to extract the 128 hex chars enode from enode url
 enode_pattern = re.compile(r'[0-9a-fA-F]{128}')
 
+
 class Helper:
     """Helper class"""
 
-    def getHostName(self, url: str) -> str:
+    def get_host_name(self, url: str) -> str:
         """Get Hostname of an URL
 
         Args:
@@ -23,14 +24,15 @@ class Helper:
             parsed_url = urllib.parse.urlparse(url)
             if parsed_url and parsed_url.hostname:
                 return parsed_url.hostname
-            
-            # Maybe it is not an absolute url: urlparse() and urlsplit() insists on absolute URLs starting with "//"
+
+            # Maybe it is not an absolute url:
+            # urlparse() and urlsplit() insists on absolute URLs starting with "//"
             parsed_url = urllib.parse.urlparse('//' + url)
             if parsed_url and parsed_url.hostname:
                 return parsed_url.hostname
         return None
 
-    def resolveIpAddress(self, dns_name: str) -> str:
+    def resolve_ip_address(self, dns_name: str) -> str:
         """Resolve the IP address of an DNS name
 
         Args:
@@ -45,23 +47,24 @@ class Helper:
             logging.error("%s: %s", ex.strerror, dns_name)
             return None
 
-    def getEnode(self, enodeUrl: str) -> str:
-        """Get 128 hex chars enode from enodeUrl
+    def get_enode_from_url(self, enode_url: str) -> str:
+        """Get 128 hex chars enode from enode_url
 
         Args:
-            enodeUrl (str): The enode URL, e.g. enode://632176321637217632721@1.2.3.4:30303
+            enode_url (str): The enode URL, e.g. enode://632176321637217632721@1.2.3.4:30303
 
         Returns:
             str: The enode (128 hex chars)
         """
-        if enodeUrl:
-            enodeList = enode_pattern.findall(enodeUrl)
-            if len(enodeList) > 0:
-                return enodeList[0]
+        if enode_url:
+            enode_list = enode_pattern.findall(enode_url)
+            if len(enode_list) > 0:
+                return enode_list[0]
         return None
 
     def deep_get(self, dictionary, keys, default=None):
-        """See https://stackoverflow.com/questions/25833613/safe-method-to-get-value-of-nested-dictionary
+        """See
+            https://stackoverflow.com/questions/25833613/safe-method-to-get-value-of-nested-dictionary
 
         Args:
             dictionary (_type_): _description_
