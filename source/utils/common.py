@@ -3,9 +3,11 @@ See See https://github.com/prometheus/client_python#custom-collectors
 
 """
 
+
 class IMetricsProvider:
     """Interface for providing the current metrics
     """
+
     def get_current_metrics(self) -> list:
         """Get the current metrics
 
@@ -13,11 +15,12 @@ class IMetricsProvider:
             list: The current metrics
         """
 
+
 class CustomCollector:
     """A custom Collector for reporting Metrics.
     """
 
-    def __init__(self, metrics_provider:IMetricsProvider):
+    def __init__(self, metrics_provider: IMetricsProvider):
         self.metrics_provider = metrics_provider
 
     def collect(self) -> list:

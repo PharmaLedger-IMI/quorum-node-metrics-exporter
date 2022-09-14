@@ -7,6 +7,7 @@ from functools import reduce
 # The regex pattern to extract the 128 hex chars enode from enode url
 enode_pattern = re.compile(r'[0-9a-fA-F]{128}')
 
+
 class Helper:
     """Helper class"""
 

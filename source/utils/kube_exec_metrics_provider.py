@@ -11,6 +11,7 @@ from .common import IMetricsProvider  # pylint: disable=E0402
 from .config import Config, PeerConfig  # pylint: disable=E0402
 from .helper import Helper  # pylint: disable=E0402
 
+
 class KubeExecMetricsProvider(IMetricsProvider):
     """Executes commands via "kubectl exec" in remote pod and provides metrics
     """
@@ -55,14 +56,14 @@ class KubeExecMetricsProvider(IMetricsProvider):
         # Format Label Selectors into key1=value1,key2=value2,... format
         deployment_label_selector = deployment.spec.selector
         label_selector_string = ','.join(map(
-                lambda key: f'{key}={deployment_label_selector.match_labels[key]}',
-                deployment_label_selector.match_labels.keys()))
+            lambda key: f'{key}={deployment_label_selector.match_labels[key]}',
+            deployment_label_selector.match_labels.keys()))
         logging.debug("%s >> Deployment found - label_selector_string=%s",
                       type(self).__name__, label_selector_string)
 
         # Get pods by selector
         pod_list = core_v1.list_namespaced_pod(namespace=self._config.namespace,
-            label_selector=label_selector_string, watch=False, _request_timeout=(1, 2))
+                                               label_selector=label_selector_string, watch=False, _request_timeout=(1, 2))
 
         if pod_list is None or len(pod_list.items) == 0:
             logging.warning("%s >> No pods found - label_selector=%s, namespace=%s",
@@ -107,8 +108,8 @@ class KubeExecMetricsProvider(IMetricsProvider):
 
         connection_successful = resp == '0'  # either '0' or '1'
         logging.debug("%s >> %s %s (%s:%s) ", type(self).__name__,
-            'OK:  Connected to' if connection_successful else 'CANNOT connect to',
-            peer.name, peer.address, peer.port)
+                      'OK:  Connected to' if connection_successful else 'CANNOT connect to',
+                      peer.name, peer.address, peer.port)
 
         return connection_successful
 
@@ -125,15 +126,15 @@ class KubeExecMetricsProvider(IMetricsProvider):
                      instance, instance_name, pod_name, self._config.namespace)
 
         metrics = GaugeMetricFamily('quorum_tcp_egress_connectivity',
-            'Quorum TCP egress connectivity to other nodes by enode. (0) for no connectivity, (1) for connectivity can be established',
-            labels=['instance', 'instance_name', 'enode', 'enode_short', 'name'])
+                                    'Quorum TCP egress connectivity to other nodes by enode. (0) for no connectivity, (1) for connectivity can be established',
+                                    labels=['instance', 'instance_name', 'enode', 'enode_short', 'name'])
 
         for each_config_peer in self._config.peers.values():
             connection_successful = self._kube_exec_check_connectivity(
                 pod_name=pod_name, peer=each_config_peer)
             metrics.add_metric([instance, instance_name, each_config_peer.enode,
-                    each_config_peer.enode[0:20], each_config_peer.name],
-                    1 if connection_successful else 0)
+                                each_config_peer.enode[0:20], each_config_peer.name],
+                               1 if connection_successful else 0)
 
         # Set current metrics to be reported by CustomCollector in a single atomic operation
         self._current_metrics = [metrics]

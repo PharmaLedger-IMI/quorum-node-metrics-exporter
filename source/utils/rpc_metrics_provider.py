@@ -6,9 +6,10 @@ import requests
 from prometheus_client.core import GaugeMetricFamily
 from requests.structures import CaseInsensitiveDict
 
-from .common import IMetricsProvider # pylint: disable=E0402
-from .config import Config # pylint: disable=E0402
-from .helper import Helper # pylint: disable=E0402
+from .common import IMetricsProvider  # pylint: disable=E0402
+from .config import Config  # pylint: disable=E0402
+from .helper import Helper  # pylint: disable=E0402
+
 
 class RpcMetricsProvider(IMetricsProvider):
     """Collects data from Quorum RPC API and provides metrics data.
@@ -80,15 +81,16 @@ class RpcMetricsProvider(IMetricsProvider):
 
         # Add metrics for all connected peers
         for each_peer in peers_data:
-            enode = self._set_metrics_for_connected_peer(each_peer, instance_name, metric_peers, metric_peers_network_direction, metric_peers_head_block)
+            enode = self._set_metrics_for_connected_peer(
+                each_peer, instance_name, metric_peers, metric_peers_network_direction, metric_peers_head_block)
             if enode is not None:
                 enodes_connected[enode] = True
 
         # Add metrics for all configured/expected peers that are currenty NOT connected
         for each_config_peer_enode in self._config.peers.keys():
             if each_config_peer_enode not in enodes_connected:
-#            enodes_connected.get(each_config_peer_enode, False) is False:
-                self._set_metrics_for_expected_but_unconnected_peer(each_config_peer_enode, instance_name, metric_peers, metric_peers_network_direction)
+                self._set_metrics_for_expected_but_unconnected_peer(
+                    each_config_peer_enode, instance_name, metric_peers, metric_peers_network_direction)
 
         # Set current metrics to be reported by CustomCollector in a single atomic operation
         self._current_metrics = [

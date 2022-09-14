@@ -4,6 +4,7 @@
 import logging
 import json
 
+
 class Config:
     """Encapsulates the application configuration.
     """
@@ -162,7 +163,8 @@ class PeerConfig:
         """
         return self._port
 
-def load(filename:str = 'config.json') -> Config:
+
+def load(filename: str = 'config.json') -> Config:
     """Load the application configuration
 
     Args:
