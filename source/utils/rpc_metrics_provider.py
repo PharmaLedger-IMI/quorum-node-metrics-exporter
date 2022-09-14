@@ -82,7 +82,8 @@ class RpcMetricsProvider(IMetricsProvider):
         # Add metrics for all connected peers
         for each_peer in peers_data:
             enode = self._set_metrics_for_connected_peer(
-                each_peer, instance_name, metric_peers, metric_peers_network_direction, metric_peers_head_block)
+                each_peer, instance_name, metric_peers,
+                metric_peers_network_direction, metric_peers_head_block)
             if enode is not None:
                 enodes_connected[enode] = True
 
@@ -90,33 +91,51 @@ class RpcMetricsProvider(IMetricsProvider):
         for each_config_peer_enode in self._config.peers.keys():
             if each_config_peer_enode not in enodes_connected:
                 self._set_metrics_for_expected_but_unconnected_peer(
-                    each_config_peer_enode, instance_name, metric_peers, metric_peers_network_direction)
+                    each_config_peer_enode, instance_name,
+                    metric_peers, metric_peers_network_direction)
 
         # Set current metrics to be reported by CustomCollector in a single atomic operation
         self._current_metrics = [
             metric_peers, metric_peers_network_direction, metric_peers_head_block]
 
-    def _set_metrics_for_connected_peer(self, each_peer, instance_name, metric_peers, metric_peers_network_direction, metric_peers_head_block) -> str:
-        # enodeUrl = "enode://[HERE IS THE 128 HEX-CHARS LONG ENODE]@1.2.3.4:30303?discport=0"
-        enode = self._helper.get_enode(enode_url=each_peer.get('enode'))
+    def _set_metrics_for_connected_peer(self, each_peer, instance_name: str,
+            metric_peers: GaugeMetricFamily,
+            metric_peers_network_direction: GaugeMetricFamily,
+            metric_peers_head_block: GaugeMetricFamily) -> str:
+        """Sets the metrics for a connected
 
+        Args:
+            each_peer (_type_): The data of the connected peer
+            instance_name (str): The instance name
+            metric_peers (GaugeMetricFamily): The metrics if a peer is connected or not
+            metric_peers_network_direction (GaugeMetricFamily): Metrics in- or outbound connected
+            metric_peers_head_block (GaugeMetricFamily): The metrics for the head block of the peer
+
+        Returns:
+            str: The enode or None if enode cannot be determined
+        """
+        # enode_url = "enode://[HERE IS THE 128 HEX-CHARS LONG ENODE]@1.2.3.4:30303?discport=0"
+        enode = self._helper.get_enode_from_url(enode_url=each_peer.get('enode'))
         if enode is None:
             return None
 
+        #
+        # Prepare metric labels:
+        #
         enode_short = enode[0:20]
+        # Get pretty name. If not defined use enode_short instead
+        name = enode_short
+        if enode in self._config.peers:
+            name= self._config.peers[enode].name
 
-        # If instance is not provided, we determine it from network.localAddress
         instance = ''
         local_address = self._helper.deep_get(
             each_peer, 'network.localAddress')
         if local_address:
             instance = self._helper.get_host_name(local_address)
             if instance:
-                instance = instance + ':9545'  # add same port as Quorum Node default metrics also do
-
-        # Get pretty name. If not defined use enode_short instead
-        name = enode_short if enode not in self._config.peers else self._config.peers[
-            enode].name
+                # add same port as Quorum Node default metrics also do
+                instance = instance + ':9545'
 
         # 1. metric_peers
         # Set value (1) that enode is found
@@ -148,7 +167,9 @@ class RpcMetricsProvider(IMetricsProvider):
 
         return enode
 
-    def _set_metrics_for_expected_but_unconnected_peer(self, enode, instance_name, metric_peers, metric_peers_network_direction) -> str:
+    def _set_metrics_for_expected_but_unconnected_peer(self, enode: str, instance_name: str,
+            metric_peers: GaugeMetricFamily,
+            metric_peers_network_direction: GaugeMetricFamily) -> str:
         instance = ''
         enode_short = enode[0:20]
         name = self._config.peers[enode].name
@@ -165,16 +186,11 @@ class RpcMetricsProvider(IMetricsProvider):
 
         # 3. metric_peers_head_block
         # WE DO NOT ADD THESE METRICS AS THEY DO NOT MAKE SENSE:
-        # Providing a value of zero (0) may also be a correct value, therefore we do not create head block metrics for non connected peers!
-        # metric_peers_head_block.add_metric([instance, instance_name, enode, enode_short, name, 'eth'], 0)
-        # metric_peers_head_block.add_metric([instance, instance_name, enode, enode_short, name, 'istanbul'], 0)
+        # Providing a value of zero (0) may also be a correct value,
+        # therefore we do not create head block metrics for non connected peers!
 
     def process(self):
         """Processes getting peers info and preparing metrics
-
-        Args:
-            rpc_url (str): URL of Quorum nodes RPC endpoint
-            known_peers (list): A list of objects of the known peers. Each object contains 'company-name' and 'enode'
         """
         # Get DNS name and use it as "pretty" instance name
         instance_name = self._helper.get_host_name(url=self._config.rpc_url)

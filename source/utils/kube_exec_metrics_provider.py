@@ -152,6 +152,7 @@ class KubeExecMetricsProvider(IMetricsProvider):
         pod_name, pod_ip = self._lookup_pod_name_and_ip()
 
         if pod_name is not None and pod_ip is not None:
+            # add same port as Quorum Node default metrics also do
             instance = f"{pod_ip}:9545"
             self.create_current_metrics(instance, instance_name, pod_name)
         else:

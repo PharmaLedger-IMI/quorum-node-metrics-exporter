@@ -47,11 +47,11 @@ class Helper:
             logging.error("%s: %s", ex.strerror, dns_name)
             return None
 
-    def get_enode(self, enode_url: str) -> str:
-        """Get 128 hex chars enode from enodeUrl
+    def get_enode_from_url(self, enode_url: str) -> str:
+        """Get 128 hex chars enode from enode_url
 
         Args:
-            enodeUrl (str): The enode URL, e.g. enode://632176321637217632721@1.2.3.4:30303
+            enode_url (str): The enode URL, e.g. enode://632176321637217632721@1.2.3.4:30303
 
         Returns:
             str: The enode (128 hex chars)
