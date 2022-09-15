@@ -2,8 +2,12 @@
 
 A Docker image based on a [Python script](./source/main.py) to provide additional metrics of a Quorum node in Prometheus format.
 
-- Information about peers
-- Information if the quorum node can establish a TCP connection to another peer (good for finding out firewall misconfigurations).
+- Information about peers like "which peer is connected inbound or outbound" and "latest block of each peer"
+- Information if the quorum node thats being monitored can establish an outbound  TCP connection to another peer (good for finding out firewall misconfigurations).
+
+## Requirements
+
+The quorum node to monitor must run on Kubernetes
 
 ## Howto
 
