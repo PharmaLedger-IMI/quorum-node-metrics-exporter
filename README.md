@@ -35,24 +35,30 @@ Metrics are provided for current connected peers and for well known peers define
 
 - `quorum_peers`
   - Description: Quorum peers by enode
-  - Labels: instance, instance_name, enode, enode_short, name
-  - Values: 0=not connected (but defined in config), 1=connected
+  - Labels: instance_name, enode, enode_short, name
+  - Values:
+    - `0` - not connected (but defined in config)
+    - `1` - connected
 - `quorum_peers_network_direction`
   - Description: Quorum peers network direction by enode
-  - Labels: instance, instance_name, enode, enode_short, name
-  - Values: 0=not connected (but defined in config), 1=inbound traffix, 2=outbound traffic
+  - Labels: instance_name, enode, enode_short, name
+  - Values:
+    - `0` - not connected (but defined in config)
+    - `1` - inbound traffix
+    - `2` - outbound traffic
 - `quorum_peers_head_block`
   - Description: Quorum peers head block by enode and protocol eth or istanbul
-  - Labels: instance, instance_name, enode, enode_short, name, protocol
+  - Labels: instance_name, enode, enode_short, name, protocol
   - Values: The latest block of the connected peer
 - `quorum_tcp_egress_connectivity`:
   - Description: Quorum TCP egress connectivity to other nodes by enode.
-  - Labels: instance, instance_name, enode, enode_short, name
-  - Values: 0=no connectivity/an outbound connection cannot be established, 1=connection can be established
+  - Labels: instance_name, enode, enode_short, name
+  - Values:
+    - `0` - no connectivity/an outbound connection cannot be established
+    - `1` - connection can be established
 
 ### Metric Labels
 
-- `instance` - The local IP address of the Quorum node followed by ':9545', e.g. `10.2.3.4:9545`
 - `instance_name` - The host name of the Quorum node taken from RPC_URL
 - `enode` - The 128 hex chars enode of the peer
 - `enode_short` - The first 20 chars of the 128 hex chars enode
