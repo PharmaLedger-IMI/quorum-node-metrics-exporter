@@ -66,16 +66,13 @@ class RpcMetricsCollector(Collector):
         # Therefore we set fresh metrics every time we collect peers information.
         metric_peers = GaugeMetricFamily(
             'quorum_peers', 'Quorum peers by enode',
-            labels=['instance', 'instance_name',
-                    'enode', 'enode_short', 'name'])
+            labels=['instance_name', 'enode', 'enode_short', 'name'])
         metric_peers_network_direction = GaugeMetricFamily(
             'quorum_peers_network_direction', 'Quorum peers network inbound (1) or outbound (2) by enode',
-            labels=['instance', 'instance_name',
-                    'enode', 'enode_short', 'name'])
+            labels=['instance_name', 'enode', 'enode_short', 'name'])
         metric_peers_head_block = GaugeMetricFamily(
             'quorum_peers_head_block', 'Quorum peers head block by enode and protocol eth or istanbul',
-            labels=['instance', 'instance_name', 'enode',
-                    'enode_short', 'name', 'protocol'])
+            labels=['instance_name', 'enode', 'enode_short', 'name', 'protocol'])
 
         # A dict of all enodes currently connected as peers
         enodes_connected = {}
@@ -129,25 +126,15 @@ class RpcMetricsCollector(Collector):
         if enode in self._config.peers:
             name= self._config.peers[enode].name
 
-        instance = ''
-        local_address = self._helper.deep_get(
-            each_peer, 'network.localAddress')
-        if local_address:
-            instance = self._helper.get_host_name(local_address)
-            if instance:
-                # add same port as Quorum Node default metrics also do
-                instance = instance + ':9545'
-
         # 1. metric_peers
         # Set value (1) that enode is found
-        metric_peers.add_metric(
-            [instance, instance_name, enode, enode_short, name], 1)
+        metric_peers.add_metric([instance_name, enode, enode_short, name], 1)
 
         # 2. metric_peers_network_direction
         # Set network inbound (1) or outbound (2)
         inbound = self._helper.deep_get(each_peer, 'network.inbound')
         metric_peers_network_direction.add_metric(
-            [instance, instance_name, enode, enode_short, name],
+            [instance_name, enode, enode_short, name],
             1 if inbound is True else 2)
 
         # 3. metric_peers_head_block
@@ -155,14 +142,14 @@ class RpcMetricsCollector(Collector):
             each_peer, 'protocols.eth.difficulty')
         if eth_difficulty:
             metric_peers_head_block.add_metric(
-                [instance, instance_name, enode, enode_short, name, 'eth'],
+                [instance_name, enode, enode_short, name, 'eth'],
                 eth_difficulty)
 
         istanbul_difficulty = self._helper.deep_get(
             each_peer, 'protocols.istanbul.difficulty')
         if istanbul_difficulty:
             metric_peers_head_block.add_metric(
-                [instance, instance_name, enode,
+                [instance_name, enode,
                     enode_short, name, 'istanbul'],
                 istanbul_difficulty)
 
@@ -171,19 +158,16 @@ class RpcMetricsCollector(Collector):
     def _set_metrics_for_expected_but_unconnected_peer(self, enode: str, instance_name: str,
             metric_peers: GaugeMetricFamily,
             metric_peers_network_direction: GaugeMetricFamily) -> str:
-        instance = ''
         enode_short = enode[0:20]
         name = self._config.peers[enode].name
 
         # 1. metric_peers
         # Set value (0) that enode is NOT found
-        metric_peers.add_metric(
-            [instance, instance_name, enode, enode_short, name], 0)
+        metric_peers.add_metric([instance_name, enode, enode_short, name], 0)
 
         # 2. metric_peers_network_direction
         # Set network not connected (0)
-        metric_peers_network_direction.add_metric(
-            [instance, instance_name, enode, enode_short, name], 0)
+        metric_peers_network_direction.add_metric([instance_name, enode, enode_short, name], 0)
 
         # 3. metric_peers_head_block
         # WE DO NOT ADD THESE METRICS AS THEY DO NOT MAKE SENSE:
@@ -200,5 +184,4 @@ class RpcMetricsCollector(Collector):
         peers_data = self._get_peers_data()
 
         # Report metrics for this instance
-        self._create_current_metrics(
-            instance_name=instance_name, peers_data=peers_data)
+        self._create_current_metrics(instance_name, peers_data)
