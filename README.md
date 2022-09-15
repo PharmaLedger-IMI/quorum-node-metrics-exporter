@@ -31,7 +31,7 @@ The quorum node to monitor must run on Kubernetes
 
 You can import the Grafana Dashboard from [here](./docs/grafana_dashboard_peers_overview.json)
 
-Metrics are provided for current connected peers and for well known peers defined in the configuration.
+Metrics are provided for current connected peers and for well known peers defined in the configuration. *Note*: The company names in the screenshot below are artifical and no real names.
 
 ![Grafana Dashboard](./docs/grafana_dashboard_peers_overview.png)
 
