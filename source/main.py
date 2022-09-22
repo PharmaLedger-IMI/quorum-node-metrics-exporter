@@ -23,7 +23,7 @@ def main() -> int:
         format='%(levelname)s: %(message)s', level=logging.INFO)
 
     # Load Config
-    SLEEP_TIME = 10.0
+    sleep_time = 10.0
     config = utils.config.load()
     if config is None:
         return 1
@@ -47,8 +47,8 @@ def main() -> int:
         logging.info("Preparing metrics")
         rpc_metrics_collector.process()
         kube_exec_metrics_collector.process()
-        logging.info("Done. Sleeping for %s seconds", SLEEP_TIME)
-        quit_event.wait(timeout=SLEEP_TIME)
+        logging.info("Done. Sleeping for %s seconds", sleep_time)
+        quit_event.wait(timeout=sleep_time)
 
     logging.info("Leaving - quit_event.is_set()=%s", quit_event.is_set())
     return 0
