@@ -31,12 +31,12 @@ The quorum node to monitor must run on Kubernetes.
 
         - In case you are using network policies, take a look at [netpol.yaml](./k8s/netpol.yaml) and modify the policies according to your needs.
 
-## Container images
+<!-- ## Container images
 
 - Containers are signed, [see](https://dev.to/n3wt0n/sign-your-container-images-with-cosign-github-actions-and-github-container-registry-3mni)
 - Verify signature via `COSIGN_EXPERIMENTAL=1 cosign verify ghcr.io/pharmaledger-imi/quorum-node-metrics-exporter:build`
 - Download *cosign* at [github](https://github.com/sigstore/cosign/releases)
-- Also see [https://docs.sigstore.dev/cosign/overview](https://docs.sigstore.dev/cosign/overview)
+- Also see [https://docs.sigstore.dev/cosign/overview](https://docs.sigstore.dev/cosign/overview) -->
 
 ## Grafana Dashboard
 
