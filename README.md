@@ -7,25 +7,36 @@ A Docker image based on a [Python script](./source/main.py) to provide additiona
 
 ## Requirements
 
-The quorum node to monitor must run on Kubernetes
+The quorum node to monitor must run on Kubernetes.
 
 ## Howto
 
 1. Build the docker image, e.g. `docker build -t REGISTYR/REPO:TAG .`
 2. Push to your registry - `docker push REGISTYR/REPO:TAG`
-3. There is no helm chart yet !
-4. Set the image `.spec.template.spec.containers[0].image` in file [deployment.yaml](./k8s/deployment.yaml).
-5. Set `namespace`, `deployment`, `rpc_url` and  `peers` in file [configmap.yaml](./k8s/configmap.yaml).
-6. Set the `metadata.namespace` in all Kubernetes yaml files. Must be deployed into the same namespace as Quorum is running!
-7. Deploy to Kubernetes`
+3. Deploy
+  
+    - Either deploy via [helm chart](https://github.com/PharmaLedger-IMI/helm-charts/tree/master/charts/quorum-node-metrics-exporter)
+    - or manually:
 
-      ```bash
-        kubectl apply -n=my-custom-namespace k8s/configmap.yaml
-        kubectl apply -n=my-custom-namespace k8s/rbac.yaml
-        kubectl apply -n=my-custom-namespace k8s/deployment.yaml
-      ```
+        - Set the image `.spec.template.spec.containers[0].image` in file [deployment.yaml](./k8s/deployment.yaml).
+        - Set `namespace`, `deployment`, `rpc_url` and  `peers` in file [configmap.yaml](./k8s/configmap.yaml).
+        - Set the `metadata.namespace` in all Kubernetes yaml files. Must be deployed into the same namespace as Quorum is running!
+        - Deploy to Kubernetes
 
-8. In case you are using network policies, take a look at [netpol.yaml](./k8s/netpol.yaml) and modify the policies according to your needs.
+            ```bash
+              kubectl apply -n=my-custom-namespace k8s/configmap.yaml
+              kubectl apply -n=my-custom-namespace k8s/rbac.yaml
+              kubectl apply -n=my-custom-namespace k8s/deployment.yaml
+            ```
+
+        - In case you are using network policies, take a look at [netpol.yaml](./k8s/netpol.yaml) and modify the policies according to your needs.
+
+<!-- ## Container images
+
+- Containers are signed, [see](https://dev.to/n3wt0n/sign-your-container-images-with-cosign-github-actions-and-github-container-registry-3mni)
+- Verify signature via `COSIGN_EXPERIMENTAL=1 cosign verify ghcr.io/pharmaledger-imi/quorum-node-metrics-exporter:build`
+- Download *cosign* at [github](https://github.com/sigstore/cosign/releases)
+- Also see [https://docs.sigstore.dev/cosign/overview](https://docs.sigstore.dev/cosign/overview) -->
 
 ## Grafana Dashboard
 

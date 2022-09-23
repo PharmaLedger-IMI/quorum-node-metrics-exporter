@@ -1,3 +1,5 @@
+"""Collection of helper functions
+"""
 import logging
 import urllib.parse
 import re

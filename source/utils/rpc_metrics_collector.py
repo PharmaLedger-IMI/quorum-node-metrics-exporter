@@ -41,11 +41,15 @@ class RpcMetricsCollector(Collector):
         # https://geth.ethereum.org/docs/rpc/ns-admin#admin_peers
         # https://consensys.net/docs/goquorum/en/latest/develop/connecting-to-a-node/
         data = '{"jsonrpc": "2.0","method": "admin_peers","params": [],"id": "getblock.io"}'
-        response = requests.post(self._config.rpc_url,
-                                 headers=headers, data=data)
-
-        if response.status_code == 200:
-            return response.json().get('result')
+        try:
+            response = requests.post(self._config.rpc_url,
+                                    headers=headers, data=data, timeout=2.0)
+            if response.status_code == 200:
+                return response.json().get('result')
+        except requests.Timeout:
+            pass
+        except requests.ConnectionError:
+            pass
         return []
 
     def _create_current_metrics(self, instance_name: str, peers_data: list):
